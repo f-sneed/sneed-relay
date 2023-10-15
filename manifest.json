@@ -1,0 +1,39 @@
+{
+    "manifest_version": 2,
+    "name": "SNEED Relay",
+    "version": "0.0.1",
+
+    "description": "Relay chat messages to stream-nexus with websockets.",
+
+    "icons": {
+	"48": "icon/icon_48.png",
+	"96": "icon/icon_96.png"
+    },
+
+    "content_scripts": [
+	{
+	    "matches": ["*://kick.com/*"],
+	    "js": ["listener.js", "sites/kick.js"]
+	},
+	{
+	    "matches": ["*://odysee.com/*"],
+	    "js": ["listener.js", "sites/odysee.js"]
+	},
+	{
+	    "matches": ["*://rumble.com/*"],
+	    "js": ["listener.js", "sites/rumble.js"]
+	},
+	{
+	    "matches": ["*://www.twitch.tv/*"],
+	    "js": ["listener.js", "sites/twitch.js"]
+	},
+	{
+	    "matches": ["*://vk.com/*"],
+	    "js": ["listener.js", "sites/vk.js"]
+	},
+	{
+	    "matches": ["*://www.youtube.com/*"],
+	    "js": ["listener.js", "sites/youtube.js"]
+	}
+    ]
+}
