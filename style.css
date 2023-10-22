@@ -1,0 +1,48 @@
+@font-face {
+	font-family: "QuattrocentoKF";
+	font-display: swap;
+	font-weight: normal;
+	font-style: normal;
+	src: url("static/quattrocento.woff2") format("woff2");
+}
+
+body {
+	background: #2d3238;
+	color: #fff;
+	font-family: QuattrocentoKF, sans-serif;
+	text-align: center;
+}
+
+header {
+	display: inline-flex;
+	font-size: 28px;
+	width: 100%;
+}
+
+header > div {
+	display: inherit;
+}
+
+#head-left {
+	--sep-spacing: 0.4em;
+
+	/* Simple thin vertical bar. */
+	border-right: solid 0.1em #fff;
+	/* margin affects spacing to the right. */
+	margin-right: var(--sep-spacing);
+	padding-right: var(--sep-spacing);
+}
+
+#head-left > * {
+	margin: auto 0;
+}
+
+#head-left img {
+	height: 64px;
+	margin-right: 0.2em;
+}
+
+#head-right {
+	/* Center text vertically in div. */
+	margin: auto 0;
+}

@@ -6,8 +6,20 @@
     "description": "Relay chat messages to stream-nexus with websockets.",
 
     "icons": {
-	"48": "icon/icon_48.png",
-	"96": "icon/icon_96.png"
+	"48": "static/icon/icon_48.png",
+	"96": "static/icon/icon_96.png"
+    },
+
+    "browser_action": {
+	"default_icon": {
+	    "48": "static/icon/icon_48.png",
+	    "96": "static/icon/icon_96.png"
+	},
+	"default_title": "SNEED Relay"
+    },
+
+    "background": {
+	"scripts": ["background.js"]
     },
 
     "content_scripts": [
