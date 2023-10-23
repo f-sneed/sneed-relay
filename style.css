@@ -1,3 +1,8 @@
+:root {
+	    --bg: #2d3238;
+	    --fg: #fff;
+}
+
 @font-face {
 	font-family: "QuattrocentoKF";
 	font-display: swap;
@@ -7,8 +12,8 @@
 }
 
 body {
-	background: #2d3238;
-	color: #fff;
+	background: var(--bg);
+	color: var(--fg);
 	font-family: QuattrocentoKF, sans-serif;
 	text-align: center;
 }
@@ -16,33 +21,34 @@ body {
 header {
 	display: inline-flex;
 	font-size: 28px;
+	margin: 0.25em;
 	width: 100%;
 }
 
-header > div {
-	display: inherit;
+header * {
+	margin: auto 0;
 }
 
-#head-left {
+#logo {
 	--sep-spacing: 0.4em;
 
 	/* Simple thin vertical bar. */
-	border-right: solid 0.1em #fff;
-	/* margin affects spacing to the right. */
+	border-right: solid 0.1em var(--fg);
+	display: inherit;
+	/* margin affects spacing outside of border. */
 	margin-right: var(--sep-spacing);
 	padding-right: var(--sep-spacing);
 }
 
-#head-left > * {
-	margin: auto 0;
+#logo span {
+	display: block;
 }
 
-#head-left img {
+#logo img {
 	height: 64px;
 	margin-right: 0.2em;
 }
 
-#head-right {
-	/* Center text vertically in div. */
-	margin: auto 0;
+#options {
+	font-size: 14pt;
 }

@@ -1,0 +1,27 @@
+# Ignore everything.
+/**
+# Except for:
+
+# Dirs at all depths:
+# Does not include the files within them.
+!/**/
+
+# Repo meta:
+!**/.gitignore
+!/LICENSE
+
+# Fonts
+!**.woff2
+
+# HTML, styles, and other mark(up|down):
+!**.css
+!**.html
+!**.md
+
+# Images
+!**.png
+!**.svg
+
+# JS stuff:
+!**.js
+!**.json
