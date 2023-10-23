@@ -1,6 +1,6 @@
 # SNEED Relay
 
-WebExtension for relaying chat messages to stream-nexus with WebSockets.
+WebExtension for relaying chat messages to [stream-nexus](https://github.com/jaw-sh/stream-nexus) with WebSockets.
 
 **Currently functional but subject to heavy change.**
 

@@ -18,7 +18,7 @@ function newConfig() {
 }
 
 async function writeConfig() {
-    console.debug("[SNEED] Config: Writing config to local storage.");
+    console.log("[SNEED] Config: Writing config to local storage.");
     return browser.storage.local.set({config: userConfig});
 }
 
@@ -31,7 +31,7 @@ async function setNewIcon(name) {
 
     browser.browserAction.setIcon(userConfig.icon.sizes);
     await writeConfig();
-    console.debug(`[SNEED] Config: Set new icon ${userConfig.icon.name}.`);
+    console.log(`[SNEED] Config: Set new icon ${userConfig.icon.name}.`);
 }
 
 var userConfig = newConfig();
@@ -53,13 +53,12 @@ async function resetConfig() {
 }
 
 browser.storage.local.get(["config"], async (c) => {
-    console.log(typeof c["config"]);
     if (typeof c["config"] !== "undefined") {
-        console.debug("[SNEED] Config: Got config ", c);
+        console.debug("[SNEED] Config: Got config ", c.config);
         userConfig = c.config;
         browser.browserAction.setIcon(userConfig.icon.sizes);
     } else {
-        console.debug("[SNEED] Config: No config found in storage. Initializing.");
+        console.log("[SNEED] Config: No config found in storage. Initializing.");
         await writeConfig();
     }
 

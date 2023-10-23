@@ -3,9 +3,8 @@ if (typeof browser === "undefined")
     var browser = chrome;
 
 // Define paths of extension pages.
-// The key is to be the basename of the file relative to the project root.
 const EXT_PAGES = {
-    config: "config.html"
+    config: "config/config.html"
 };
 
 // Open settings page on toolbar icon click.
