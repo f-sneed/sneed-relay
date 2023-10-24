@@ -8,6 +8,14 @@ WebExtension for relaying chat messages to [stream-nexus](https://github.com/jaw
 
 Right now, this is not yet available as a normal extension. You will have to load it a special way.
 
+First, clone the repo:
+```bash
+$ git clone https://github.com/y-a-t-s/sneed-relay.git
+```
+
 **Firefox**: Go to `about:debugging` -> `This Firefox` -> `Load temporary Add-on`.
 
-**Chromium**: Go to `Extensions`, enable `Developer mode`, and click `Load unpacked`. Exact instructions may vary based on your specific browser.
+**Chromium-based**: Go to `Extensions`, enable `Developer mode` at the top-right, and click `Load unpacked`.
+Exact instructions may vary based on your specific flavor of Chromium.
+
+**Safari/WebKit**: [¯\\\_(ツ)_/¯](https://developer.apple.com/documentation/safariservices/safari_web_extensions/developing_a_safari_web_extension)
