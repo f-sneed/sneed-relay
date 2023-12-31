@@ -28,6 +28,10 @@ function newConfig() {
             preferred: DEFAULT_LOGO,
             // Automatically switch to seasonal icons.
             useSeasonal: true
+        },
+        server: {
+            ip: "127.0.0.1",
+            port: 1350,
         }
     };
 }

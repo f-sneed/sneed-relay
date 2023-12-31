@@ -10,9 +10,20 @@ async function matchHeaderIcon(iconPath) {
 
 function fillConfig(cfg) {
     document.querySelectorAll("#options input").forEach((node) => {
-        switch (node.getAttribute("name")) {
-            case "useSeasonalIcons":
-                node.checked = cfg.icon.useSeasonal;
+        var nodePath = node.getAttribute("name").split("_");
+        var option = nodePath.pop();
+
+        var optionPath = cfg;
+        nodePath.forEach((p) => {
+            optionPath = optionPath[p];
+        });
+
+        switch (node.getAttribute("type")) {
+            case "checkbox":
+                node.checked = optionPath[option];
+                break;
+            case "text":
+                node.value = optionPath[option];
                 break;
         }
     });
@@ -23,4 +34,27 @@ browser.storage.local.get(["config"], (c) => {
 
     matchHeaderIcon(cfg.icon.sizes.path[128]);
     fillConfig(cfg);
+
+    document.querySelector("#save_btn").addEventListener("click", () => {
+        document.querySelectorAll("#options input").forEach((node) => {
+            var nodePath = node.getAttribute("name").split("_");
+            var option = nodePath.pop();
+
+            var optionPath = cfg;
+            nodePath.forEach((p) => {
+                optionPath = optionPath[p];
+            });
+
+            switch (node.getAttribute("type")) {
+                case "checkbox":
+                    optionPath[option] = node.checked;
+                    break;
+                case "text":
+                    optionPath[option] = node.value;
+                    break;
+            }
+        });
+
+        browser.storage.local.set({config: cfg});
+    });
 });

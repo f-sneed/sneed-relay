@@ -1,3 +1,6 @@
+if (typeof browser === "undefined")
+    var browser = chrome;
+
 var ChatMessage = (id, platform, channel) => {
     return {
         id,
@@ -21,7 +24,6 @@ var ChatMessage = (id, platform, channel) => {
 var Seed = () => {
     'use strict';
 
-    const SOCKET_URL = "ws://127.0.0.1:1350/chat.ws";
     const DEBUG = true;
 
     /// Channel name used as a token and in messages.
@@ -62,12 +64,12 @@ var Seed = () => {
     // Chat Socket
     //
     // Creates a WebSocket to the Rust chat server.
-    function createChatSocket() {
+    function createChatSocket(ip, port) {
         if (chatSocket !== null && chatSocket.readyState === WebSocket.OPEN) {
             log("Chat socket already exists and is open.");
-        }
-        else {
+        } else {
             log("Creating chat socket.");
+            const SOCKET_URL = `ws://${ip}:${port}/chat.ws`;
             const ws = new WebSocket(SOCKET_URL);
             ws.addEventListener("open", (event) => onChatSocketOpen(ws, event));
             ws.addEventListener("message", (event) => onChatSocketMessage(ws, event));
@@ -132,12 +134,11 @@ var Seed = () => {
     log("Initializing.");
 
     function init() {
-        //eventSourcePatch();
-        //fetchPatch();
-        //webSocketPatch();
-        //xhrPatch();
-        createChatSocket();
-        this.fetchChatHistory()
+        browser.storage.local.get(["config"], (c) => {
+            var cfg = c.config;
+            createChatSocket(cfg.server.ip, cfg.server.port);
+            this.fetchChatHistory();
+        });
     }
 
     return {
