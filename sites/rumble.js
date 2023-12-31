@@ -1,113 +1,160 @@
-const GET_CHAT_CONTAINER = () => {
-    return document.getElementById("chat-history-list");
-};
+// const UUID = import("https://jspm.dev/uuid");
 
-const GET_EXISTING_MESSAGES = () => {
-    console.log("[SNEED] Checking for existing messages.");
-    const nodes = document.querySelectorAll(".sneed-chat-container .chat-history--row");
+const namespace = "5ceefcfb-4aa5-443a-bea6-1f8590231471";
+const platform = "Rumble";
+const channel = (() => {
+    const path = document.location.pathname;
+    if (path.startsWith("/chat/popup"))
+        return path.split("/")[3];
+    else
+        return document.querySelector(".rumbles-vote-pill").dataset.id;
+})();
 
-    if (nodes.length > 0) {
-        const messages = HANDLE_MESSAGES(nodes);
-        if (messages.length > 0) {
-            SEND_MESSAGES(messages);
-        }
+var Rumble = () => {
+    'use strict';
+
+    var emotes = [];
+    var eventSrc = null;
+
+    async function fetchChatHistory() {
+        eventSrc = new EventSource(`https://web7.rumble.com/chat/api/chat/${channel}/stream`, { withCredentials: true });
+
+        eventSrc.onmessage = (event) => {
+            switch (event.type) {
+                case "init":
+                case "message":
+                    const messages = prepareChatMessages(JSON.parse(event.data));
+                    if (messages.length > 0)
+                        this.sendChatMessages(messages);
+
+                    break;
+            }
+        };
+
+        eventSrc.error = () => {
+            if (eventSrc.readyState === 2 && !reconnectTimeoutID) {
+                reconnectTimeoutID = setTimeout(
+                    () => {
+                        reconnectTimeoutID = 0;
+                        if (should_keep_alive)
+                            eventSource = rumbleSocketConnect();
+                    },
+                    3000,
+                );
+            }
+        };
     }
-};
 
-const HANDLE_MESSAGES = (nodes) => {
-    const messages = [];
+    function receiveChatPairs(messages, users) {
+        const newMessages = prepareChatMessages(messages, users);
+        this.sendChatMessages(newMessages);
+    }
 
-    nodes.forEach((node) => {
-        let message = CREATE_MESSAGE();
-        message.platform = "Rumble";
+    function prepareChatMessages(json) {
+        const data = json.data;
+        var messages = [];
 
-        const avatarEl = node.querySelector("img.chat-history--user-avatar");
-        const picEl = node.querySelector(".chat--profile-pic");
-        if (avatarEl !== null && avatarEl.src !== "") {
-            console.log("Avatar", avatarEl.src);
-            message.avatar = avatarEl.src;
-        }
-        else if (picEl !== null && picEl.style.backgroundImage !== "") {
-            message.avatar = picEl.style.backgroundImage.replace('url("', "").replace('")', "");
-            console.log("Profile Pic", picEl.style.backgroundImage);
+        if (data.messages === undefined || data.users === undefined) {
+            console.log("[SNEED] Unexpected input:", data);
+            return messages;
         }
 
-
-        if (node.classList.contains("chat-history--rant")) {
-            message.username = node.querySelector(".chat-history--rant-username").innerText;
-            message.message = node.querySelector(".chat-history--rant-text").innerHTML;
-            message.is_premium = true;
-            message.amount = parseFloat(node.querySelector(".chat-history--rant-price").innerText.replace("$", ""));
-            message.currency = "USD"; // Rumble rants are always USD.
-            console.log("Superchat", message);
-        }
-        else {
-            message.username = node.querySelector(".chat-history--username").innerText;
-            message.message = node.querySelector(".chat-history--message").innerHTML;
-        }
-
-        node.querySelectorAll(".chat-history--user-badge").forEach((badge) => {
-            if (badge.src.includes("moderator")) {
-                message.is_mod = true;
+        data.messages.forEach((messageData, index) => {
+            // const id = UUID.v5(messageData.id, NAMESPACE);
+            const id = crypto.randomUUID();
+            const message = ChatMessage(id, platform, channel);
+            const user = data.users.find((user) => user.id === messageData.user_id);
+            if (user === undefined) {
+                console.log("[SNEED] User not found:", messageData.user_id);
+                return;
             }
-            else if (badge.src.includes("locals") || badge.src.includes("whale")) {
-                message.is_sub = true;
+
+            message.sent_at = Date.parse(messageData.time);
+            // replace :r+rumbleemoji: with <img> tags
+            message.message = messageData.text.replace(/:(r\+.*?)\:/g, (match, id) => {
+                if (emotes[id] !== undefined)
+                    return `<img class="emoji" data-emote="${id}" src="${emotes[id]}" alt="${id}" />`;
+
+                console.log(`no emote for ${id}`);
+                return match;
+            });
+
+            message.username = user.username;
+            if (user['image.1'] !== undefined) {
+                message.avatar = user['image.1'];
             }
-            else if (badge.src.includes("admin")) {
-                // misnomer: this is the streamer.
-                message.is_owner = true;
+
+            if (user.badges !== undefined) {
+                user.badges.forEach((badge) => {
+                    switch (badge) {
+                        case "admin":
+                            message.is_owner = true;
+                            break;
+                        case "moderator":
+                            message.is_mod = true;
+                            break;
+                        case "whale-gray":
+                        case "whale-blue":
+                        case "whale-yellow":
+                        case "locals":
+                        case "locals_supporter":
+                        case "recurring_subscription":
+                            message.is_sub = true;
+                            break;
+                        case "premium":
+                            break;
+                        case "verified":
+                            message.is_verified = true;
+                            break;
+                        default:
+                            console.log(`[SNEED] Unknown badge type: ${badge.type}`);
+                            break;
+                    }
+                });
             }
-            // Rumble staff badge unknown.
+
+            if (messageData.rant !== undefined) {
+                message.amount = messageData.rant.price_cents / 100;
+                message.currency = "USD";
+            }
+
+            messages.push(message);
         });
 
-        console.log(message);
-        messages.push(message);
-    });
+        return messages;
+    }
 
-    return messages;
+    /* TODO:
+    async function onFetchResponse(response) {
+        const url = new URL(response.url);
+        if (url.searchParams.get('name') == "emote.list") {
+            await response.json().then((json) => {
+                json.data.items.forEach((channel) => {
+                    if (channel.emotes !== undefined && channel.emotes.length > 0) {
+                        channel.emotes.forEach((emote) => {
+                            // emotes_pack_id: 1881816
+                            // file: "https://ak2.rmbl.ws/z12/F/3/4/s/F34si.aaa.png"
+                            // id: 139169247
+                            // is_subs_only: false
+                            // moderation_status: "NOT_MODERATED"
+                            // name: "r+rumblecandy"
+                            // pack_id: 1881816
+                            // position: 0
+                            emotes[emote.name] = emote.file;
+                        });
+                    }
+                });
+            });
+        }
+    }
+    */
+
+    return {
+        fetchChatHistory
+    };
 };
 
-// <li class="chat-history--row" data-message-user-id="u64 goes here" data-message-id="u64 goes here">
-// <img class="chat-history--user-avatar" src="https://sp.rmbl.ws/many/sub/dir/xxx.jpeg">
-// <div class="chat-history--message-wrapper">
-//   <div class="chat-history--username">
-//     <a target="_blank" href="/user/username" style="color: #e1637f">UserName</a>
-//   </div>
-//   <div class="chat-history--badges-wrapper">
-//     <img class="chat-history--user-badge" src="/i/badges/moderator_48.png" alt="Moderator" title="Moderator"></img>
-//     <a href="/account/publisher-packages"><img class="chat-history--user-badge" src="/i/badges/premium_48.png" alt="Rumble Premium User" title="Rumble Premium User"></a>
-//     <img class="chat-history--user-badge" src="/i/badges/locals_48.png" alt="Sub" title="Sub">
-//     <img class="chat-history--user-badge" src="/i/badges/whale_yellow_48.png" alt="Supporter+" title="Supporter+">
-//     <img class="chat-history--user-badge" src="/i/badges/admin_48.png" alt="Admin" title="Admin">
-//   </div>
-//   <div class="chat-history--message">USER CHAT MESSAGE</div>
-// </div>
-// </li>
-
-// <li class="chat-history--row chat-history--rant" data-message-user-id="x" data-message-id="x">
-// <div class="chat-history--rant" data-level="2">
-//   <div class="chat-history--rant-head">
-//     <div class="chat--profile-pic" style="margin-right: 1rem; background-image: url(&quot;https://sp.rmbl.ws/xxx&quot;);" data-large=""></div>
-//       <div style="display: flex; flex-wrap: wrap; align-items: flex-end">
-//         <a class="chat-history--rant-username" target="_blank" href="/user/xxx">xxx</a>
-//         <div class="chat-history--badges-wrapper"><img class="chat-history--user-badge" src="/i/badges/whale_yellow_48.png" alt="Supporter+" title="Supporter+"></div>
-//         <div class="chat-history--rant-price" style="width: 100%;">$2</div>
-//       </div>
-//     </div>
-//     <div class="chat-history--rant-text">xxx</div>
-//   </div>
-// </div>
-// </li>
-
-
-// <li class="chat-history--row chat-history--rant" data-message-user-id="88707682" data-message-id="1182290124941408978"><div class="chat-history--rant" data-level="2">
-// <div class="chat-history--rant-head">
-// <div class="chat--profile-pic" style="margin-right: 1rem; background-image: url(&quot;https://sp.rmbl.ws/z0/I/j/z/s/Ijzsf.asF-1gtbaa-rpmd6x.jpeg&quot;);" data-large=""></div>
-// <div style="display: flex; flex-wrap: wrap; align-items: flex-end">
-// <a class="chat-history--rant-username" target="_blank" href="/user/madattheinternet">madattheinternet</a>
-// <div class="chat-history--badges-wrapper"><img class="chat-history--user-badge" src="/i/badges/admin_48.png" alt="Admin" title="Admin"><a href="/account/publisher-packages"><img class="chat-history--user-badge" src="/i/badges/premium_48.png" alt="Rumble Premium User" title="Rumble Premium User"></a><img class="chat-history--user-badge" src="/i/badges/whale_gray_48.png" alt="Supporter" title="Supporter"></div>
-// <div class="chat-history--rant-price" style="width: 100%;">$2</div>
-// </div>
-// </div>
-// <div class="chat-history--rant-text">Testing superchats.</div>
-// </div></li>
+var site = Rumble();
+var seed = Seed();
+var Feed = Object.assign(seed, site);
+Feed.init();

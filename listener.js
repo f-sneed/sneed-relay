@@ -1,102 +1,147 @@
-const SOCKET_TIMEOUT = 3000;
-const SOCKET_URI = "ws://localhost:1350/chat.ws";
-
-var socket = new WebSocket(SOCKET_URI);
-
-socket.addEventListener("open", (event) => {
-    console.log("[SNEED] Connection established.");
-});
-
-socket.addEventListener("close", (event) => {
-    console.log("[SNEED] Socket has closed. Attempting reconnect.", event.reason);
-    setTimeout(() => { socket = new WebSocket(SOCKET_URI); }, SOCKET_TIMEOUT);
-});
-
-socket.addEventListener("error", (event) => {
-    socket.close();
-    setTimeout(() => { socket = new WebSocket(SOCKET_URI); }, SOCKET_TIMEOUT);
-});
-
-//
-// Chat Messages
-//
-let MESSAGE_QUEUE = [];
-
-const CREATE_MESSAGE = () => {
+var ChatMessage = (id, platform, channel) => {
     return {
-        id: crypto.randomUUID(),
-        platform: "IDK",
-        username: "DUMMY_USER",
+        id,
+        platform,
+        channel,
+        sent_at: Date.now(),
+        received_at: Date.now(),
         message: "",
-        sent_at: Date.now(), // System timestamp for display ordering.
-        received_at: Date.now(), // Local timestamp for management.
-        avatar: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
-        is_premium: false,
+        username: "DUMMY_USER",
+        avatar: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==", // Transparent pixel.
         amount: 0,
         currency: "ZWL",
         is_verified: false,
         is_sub: false,
         is_mod: false,
         is_owner: false,
-        is_staff: false,
+        is_staff: false
+    }
+};
+
+var Seed = () => {
+    'use strict';
+
+    const SOCKET_URL = "ws://127.0.0.1:1350/chat.ws";
+    const DEBUG = true;
+
+    /// Channel name used as a token and in messages.
+    /// UUID used for generating v5 UUIDs consistently to each platform.
+    /// Platform name used as a token and in messages.
+
+    /// Messages waiting to be sent to the Rust backend.
+    var chatMessageQueue = [];
+    /// Current connection to the Rust backend.
+    var chatSocket = null;
+
+    function debug(message, ...args) {
+        if (DEBUG) {
+            log(message, ...args);
+        }
+    }
+
+    function log(message, ...args) {
+        if (args.length > 0) {
+            console.log(`[SNEED::${platform}] ${message}`, ...args);
+        }
+        else {
+            console.log(`[SNEED::${platform}] ${message}`);
+        }
+    }
+
+    /*
+      async fetchDependencies() {
+      window.UUID = await import('https://jspm.dev/uuid');
+      }
+    */
+
+    function onDocumentReady() {
+        debug("Document ready.");
+    }
+
+    //
+    // Chat Socket
+    //
+    // Creates a WebSocket to the Rust chat server.
+    function createChatSocket() {
+        if (chatSocket !== null && chatSocket.readyState === WebSocket.OPEN) {
+            log("Chat socket already exists and is open.");
+        }
+        else {
+            log("Creating chat socket.");
+            const ws = new WebSocket(SOCKET_URL);
+            ws.addEventListener("open", (event) => onChatSocketOpen(ws, event));
+            ws.addEventListener("message", (event) => onChatSocketMessage(ws, event));
+            ws.addEventListener("close", (event) => onChatSocketClose(ws, event));
+            ws.addEventListener("error", (event) => onChatSocketError(ws, event));
+
+            ws.sneed_socket = true;
+            chatSocket = ws;
+        }
+
+        return chatSocket;
+    }
+
+    // Called when the chat socket is opened.
+    function onChatSocketOpen(ws, event) {
+        debug("Chat socket opened.");
+        sendChatMessages(chatMessageQueue);
+        chatMessageQueue = [];
+    }
+
+    // Called when the chat socket receives a message.
+    function onChatSocketMessage(ws, event) {
+        debug("Chat socket received data.", event);
+    }
+
+    // Called when the chat socket is closed.
+    function onChatSocketClose(ws, event) {
+        debug("Chat socket closed.", event);
+        setTimeout(() => createChatSocket(), 3000);
+    }
+
+    // Called when the chat socket errors.
+    function onChatSocketError(ws, event) {
+        debug("Chat socket errored.", event);
+        ws.close();
+        setTimeout(() => createChatSocket(), 3000);
+    }
+
+    /// Sends messages to the Rust backend, or adds them to the queue.
+    function sendChatMessages(messages) {
+        // Check if the chat socket is open.
+        if (chatSocket.readyState === WebSocket.OPEN && channel !== null) {
+            // Send message queue to Rust backend.
+            chatSocket.send(JSON.stringify({
+                platform: platform,
+                channel: channel,
+                messages: messages,
+            }));
+        }
+        else {
+            // Add messages to queue.
+            chatMessageQueue.push(...messages);
+        }
+    }
+
+    // TODO: Figure out the patching shit.
+
+    function fetchChatHistory() {
+        return;
+    }
+
+    log("Initializing.");
+
+    function init() {
+        //eventSourcePatch();
+        //fetchPatch();
+        //webSocketPatch();
+        //xhrPatch();
+        createChatSocket();
+        this.fetchChatHistory()
+    }
+
+    return {
+        init,
+        sendChatMessages
     };
 };
-
-const BIND_MUTATION_OBSERVER = () => {
-    const targetNode = GET_CHAT_CONTAINER();
-
-    if (targetNode === null) {
-        return false;
-    }
-
-    if (document.querySelector(".sneed-chat-container") !== null) {
-        console.log("[SNEED] Chat container already bound, aborting.");
-        return false;
-    }
-
-    targetNode.classList.add("sneed-chat-container");
-
-    const observer = new MutationObserver(MUTATION_OBSERVE);
-    observer.observe(targetNode, {
-        childList: true,
-        attributes: false,
-        subtree: false
-    });
-
-    GET_EXISTING_MESSAGES();
-    return true;
-};
-
-const MUTATION_OBSERVE = (mutationList, observer) => {
-    for (const mutation of mutationList) {
-        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-            const messages = HANDLE_MESSAGES(mutation.addedNodes);
-            if (messages.length > 0) {
-                SEND_MESSAGES(messages);
-            }
-        }
-    }
-};
-
-const SEND_MESSAGES = (messages) => {
-    // check if socket is open
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(messages));
-    }
-    else {
-        // add to queue if not
-        messages.forEach((message) => {
-            MESSAGE_QUEUE.push(messages);
-        });
-    }
-};
-
-setInterval(() => {
-    if (document.querySelector(".sneed-chat-container") === null) {
-        const chatContainer = GET_CHAT_CONTAINER();
-        if (chatContainer !== null && !chatContainer.classList.contains("sneed-chat-container")) {
-            console.log("[SNEED] Binding chat container.");
-            BIND_MUTATION_OBSERVER();
-        }
-    }
-}, 1000);

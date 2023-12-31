@@ -6,50 +6,50 @@
     "description": "Relay chat messages to stream-nexus with websockets.",
 
     "icons": {
-	"48": "static/icon/logo_48.png",
-	"96": "static/icon/logo_96.png",
-	"128": "static/icon/logo_128.png"
+        "48": "static/icon/logo_48.png",
+        "96": "static/icon/logo_96.png",
+        "128": "static/icon/logo_128.png"
     },
 
     "browser_action": {
-	"default_icon": {
-	    "48": "static/icon/logo_48.png",
-	    "96": "static/icon/logo_96.png",
-	    "128": "static/icon/logo_128.png"
-	},
-	"default_title": "SNEED Relay"
+        "default_icon": {
+            "48": "static/icon/logo_48.png",
+            "96": "static/icon/logo_96.png",
+            "128": "static/icon/logo_128.png"
+        },
+        "default_title": "SNEED Relay"
     },
 
     "permissions": ["storage"],
 
     "background": {
-	"scripts": ["background.js", "user_config.js"]
+        "scripts": ["background.js", "user_config.js"]
     },
 
     "content_scripts": [
-	{
-	    "matches": ["*://kick.com/*"],
-	    "js": ["listener.js", "sites/kick.js"]
-	},
-	{
-	    "matches": ["*://odysee.com/*"],
-	    "js": ["listener.js", "sites/odysee.js"]
-	},
-	{
-	    "matches": ["*://rumble.com/*"],
-	    "js": ["listener.js", "sites/rumble.js"]
-	},
-	{
-	    "matches": ["*://www.twitch.tv/*"],
-	    "js": ["listener.js", "sites/twitch.js"]
-	},
-	{
-	    "matches": ["*://vk.com/*"],
-	    "js": ["listener.js", "sites/vk.js"]
-	},
-	{
-	    "matches": ["*://www.youtube.com/*"],
-	    "js": ["listener.js", "sites/youtube.js"]
-	}
+        {
+            "matches": ["*://kick.com/*"],
+            "js": ["listener.js", "sites/kick.js"]
+        },
+        {
+            "matches": ["*://odysee.com/*"],
+            "js": ["listener.js", "sites/odysee.js"]
+        },
+        {
+            "matches": ["*://rumble.com/*"],
+            "js": ["listener.js", "sites/rumble.js"]
+        },
+        {
+            "matches": ["*://www.twitch.tv/*"],
+            "js": ["listener.js", "sites/twitch.js"]
+        },
+        {
+            "matches": ["*://vk.com/*"],
+            "js": ["listener.js", "sites/vk.js"]
+        },
+        {
+            "matches": ["*://www.youtube.com/*"],
+            "js": ["listener.js", "sites/youtube.js"]
+        }
     ]
 }
