@@ -52,3 +52,16 @@ header * {
 #options {
 	font-size: 14pt;
 }
+
+#options div {
+	margin-bottom: 0.1em;
+}
+
+#options > div {
+	margin-bottom: 0.4em;
+}
+
+#options h2 {
+	padding-left: 30%;
+	text-align: left;
+}

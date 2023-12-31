@@ -16,17 +16,24 @@
 		</header>
 
 		<div id="options">
-			<div>
-				<label for="icon_useSeasonal">Use seasonal icons:</label>
-				<input name="icon_useSeasonal" type="checkbox" value=""/>
+			<div id="icon">
+				<h2>Icon:</h2>
+				<div>
+					<label for="icon_useSeasonal">Use seasonal icons:</label>
+					<input name="icon_useSeasonal" type="checkbox" value=""/>
+				</div>
 			</div>
-			<div>
-				<label for="server_ip">Server IP:</label>
-				<input name="server_ip" type="text" value=""/>
-			</div>
-			<div>
-				<label for="server_port">Server Port:</label>
-				<input name="server_port" type="text" value=""/>
+			<div id="server">
+				<h2>Server:</h2>
+				<div>
+					<label for="server_ip">IP:</label>
+					<input name="server_ip" type="text" value=""/>
+				</div>
+				<div>
+					<label for="server_port">Port:</label>
+					<input name="server_port" type="text" value=""/>
+				</div>
+
 			</div>
 		</div>
 		<button id="save_btn">Save Config</button>
