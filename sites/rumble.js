@@ -1,5 +1,25 @@
 // const UUID = import("https://jspm.dev/uuid");
 
+var ChatMessage = (id, platform, channel) => {
+    return {
+        id,
+        platform,
+        channel,
+        sent_at: Date.now(),
+        received_at: Date.now(),
+        message: "",
+        username: "DUMMY_USER",
+        avatar: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==", // Transparent pixel.
+        amount: 0,
+        currency: "ZWL",
+        is_verified: false,
+        is_sub: false,
+        is_mod: false,
+        is_owner: false,
+        is_staff: false
+    };
+};
+
 const namespace = "5ceefcfb-4aa5-443a-bea6-1f8590231471";
 const platform = "Rumble";
 const channel = (() => {
@@ -25,7 +45,11 @@ var Rumble = () => {
                 case "message":
                     const messages = prepareChatMessages(JSON.parse(event.data));
                     if (messages.length > 0)
-                        this.sendChatMessages(messages);
+                        browser.runtime.sendMessage({
+                            platform,
+                            channel,
+                            messages
+                        });
 
                     break;
             }
@@ -47,7 +71,11 @@ var Rumble = () => {
 
     function receiveChatPairs(messages, users) {
         const newMessages = prepareChatMessages(messages, users);
-        this.sendChatMessages(newMessages);
+        browser.runtime.sendMessage({
+            platform,
+            channel,
+            messages
+        });
     }
 
     function prepareChatMessages(json) {
@@ -124,37 +152,14 @@ var Rumble = () => {
         return messages;
     }
 
-    /* TODO:
-    async function onFetchResponse(response) {
-        const url = new URL(response.url);
-        if (url.searchParams.get('name') == "emote.list") {
-            await response.json().then((json) => {
-                json.data.items.forEach((channel) => {
-                    if (channel.emotes !== undefined && channel.emotes.length > 0) {
-                        channel.emotes.forEach((emote) => {
-                            // emotes_pack_id: 1881816
-                            // file: "https://ak2.rmbl.ws/z12/F/3/4/s/F34si.aaa.png"
-                            // id: 139169247
-                            // is_subs_only: false
-                            // moderation_status: "NOT_MODERATED"
-                            // name: "r+rumblecandy"
-                            // pack_id: 1881816
-                            // position: 0
-                            emotes[emote.name] = emote.file;
-                        });
-                    }
-                });
-            });
-        }
+    function init() {
+        fetchChatHistory();
     }
-    */
 
     return {
-        fetchChatHistory
+        init
     };
 };
 
-var site = Rumble();
-var seed = Seed();
-var Feed = Object.assign(seed, site);
+var Feed = Rumble();
 Feed.init();

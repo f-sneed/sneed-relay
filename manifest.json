@@ -20,7 +20,7 @@
         "default_title": "SNEED Relay"
     },
 
-    "permissions": ["storage"],
+    "permissions": ["storage", "webRequest", "*://rumble.com/*"],
 
     "background": {
         "scripts": ["background.js", "user_config.js"]
@@ -37,7 +37,7 @@
         },
         {
             "matches": ["*://rumble.com/*"],
-            "js": ["listener.js", "sites/rumble.js"]
+	    "js": ["sites/rumble.js"]
         },
         {
             "matches": ["*://www.twitch.tv/*"],

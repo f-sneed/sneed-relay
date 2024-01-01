@@ -1,6 +1,3 @@
-if (typeof browser === "undefined")
-    var browser = chrome;
-
 var ChatMessage = (id, platform, channel) => {
     return {
         id,
@@ -18,7 +15,7 @@ var ChatMessage = (id, platform, channel) => {
         is_mod: false,
         is_owner: false,
         is_staff: false
-    }
+    };
 };
 
 var Seed = () => {
