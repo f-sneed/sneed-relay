@@ -62,7 +62,7 @@ var Socket = (ip, port) => {
         }
 
         log("Creating new chat socket.");
-        socket = new WebSocket(`ws://${ip}:${port}/chat.ws`);
+        socket = new WebSocket(`ws://${ip}:${port}/relay.ws`);
 
         socket.addEventListener("close", onClose);
         socket.addEventListener("error", onError);

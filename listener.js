@@ -1,6 +1,5 @@
-var ChatMessage = (id, platform, channel) => {
+var ChatMessage = (platform, channel) => {
     return {
-        id,
         platform,
         channel,
         sent_at: Date.now(),
@@ -47,12 +46,6 @@ var Seed = () => {
         }
     }
 
-    /*
-      async fetchDependencies() {
-      window.UUID = await import('https://jspm.dev/uuid');
-      }
-    */
-
     function onDocumentReady() {
         debug("Document ready.");
     }
@@ -83,8 +76,10 @@ var Seed = () => {
     // Called when the chat socket is opened.
     function onChatSocketOpen(ws, event) {
         debug("Chat socket opened.");
-        sendChatMessages(chatMessageQueue);
-        chatMessageQueue = [];
+        if (chatMessageQueue.length > 0) {
+                sendChatMessages(chatMessageQueue);
+                chatMessageQueue = [];
+        }
     }
 
     // Called when the chat socket receives a message.

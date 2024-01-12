@@ -1,7 +1,3 @@
-// Referencing browser instead of chrome on chrome causes problems.
-if (typeof browser === "undefined")
-    var browser = chrome;
-
 /// Set header icon to match the toolbar's.
 async function matchHeaderIcon(iconPath) {
     // TODO: use SVG if available.
